@@ -1,6 +1,4 @@
-[![Runbot Status](https://runbot.odoo-community.org/runbot/badge/flat/251/12.0.svg)](https://runbot.odoo-community.org/runbot/repo/github-com-oca-server-auth-251)
-[![Build Status](https://travis-ci.org/OCA/server-auth.svg?branch=12.0)](https://travis-ci.org/OCA/server-auth)
-[![codecov](https://codecov.io/gh/OCA/server-auth/branch/12.0/graph/badge.svg)](https://codecov.io/gh/OCA/server-auth)
+# WARNING: This is customized for some specific purposes. DO NOT use directly. We assume no liability of problems or data loss. Use proper OCA modules unless you know what you are doing.
 
 Server Auth
 ===========
