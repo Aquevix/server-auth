@@ -60,45 +60,50 @@ class ResUsers(models.Model):
         if not http.request:
             return
 
-        session = http.request.session
 
-        # Calculate deadline
-        deadline = self._auth_timeout_deadline_calculate()
+        # AQSMS: ------ Starting loging out internal users------
+        #Added a condition to check that user should be of Internal User Type for making auto logout functionality work
+        internal_group = self.env['res.groups'].search_read([('name', '=', 'Internal User')])
+        if http.request.session['uid'] in internal_group[0]['users']:
+            # AQSMS: ------ End  ------
+            session = http.request.session
 
-        # Check if past deadline
-        expired = False
-        if deadline is not False:
-            path = http.root.session_store.get_session_filename(session.sid)
-            try:
+            # Calculate deadline
+            deadline = self._auth_timeout_deadline_calculate()
 
-                expired = getmtime(path) < deadline
-            except OSError:
-                _logger.exception(
-                    'Exception reading session file modified time.',
-                )
-                # Force expire the session. Will be resolved with new session.
-                expired = True
+            # Check if past deadline
+            expired = False
+            if deadline is not False:
+                path = http.root.session_store.get_session_filename(session.sid)
+                try:
+                    expired = getmtime(path) < deadline
+                except OSError:
+                    _logger.exception(
+                        'Exception reading session file modified time.',
+                    )
+                    # Force expire the session. Will be resolved with new session.
+                    expired = True
 
-        # Try to terminate the session
-        terminated = False
-        if expired:
-            terminated = self._auth_timeout_session_terminate(session)
+            # Try to terminate the session
+            terminated = False
+            if expired:
+                terminated = self._auth_timeout_session_terminate(session)
 
-        # If session terminated, all done
-        if terminated:
-            raise SessionExpiredException("Session expired")
+            # If session terminated, all done
+            if terminated:
+                raise SessionExpiredException("Session expired")
 
-        # Else, conditionally update session modified and access times
-        ignored_urls = self._auth_timeout_get_ignored_urls()
+            # Else, conditionally update session modified and access times
+            ignored_urls = self._auth_timeout_get_ignored_urls()
 
-        if http.request.httprequest.path not in ignored_urls:
-            if 'path' not in locals():
-                path = http.root.session_store.get_session_filename(
-                    session.sid,
-                )
-            try:
-                utime(path, None)
-            except OSError:
-                _logger.exception(
-                    'Exception updating session file access/modified times.',
-                )
+            if http.request.httprequest.path not in ignored_urls:
+                if 'path' not in locals():
+                    path = http.root.session_store.get_session_filename(
+                        session.sid,
+                    )
+                try:
+                    utime(path, None)
+                except OSError:
+                    _logger.exception(
+                        'Exception updating session file access/modified times.',
+                    )
